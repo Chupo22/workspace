@@ -38,7 +38,6 @@ function assertions(should, Assertion) {
 
     const assertion = dsl.toString();
 
-    console.log(assertion);
     should(assertion).eql(trimForBash(expected));
   });
 }
