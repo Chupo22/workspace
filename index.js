@@ -1,3 +1,3 @@
-exports.rcFile = require('./lib/rc-file');
-exports.runner = require('./lib/launcher');
 exports.helpers = require('./helpers');
+exports.rcFile = require('./lib/rc-file');
+exports.launcher = require('./lib/launcher');

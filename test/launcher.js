@@ -1,12 +1,19 @@
 const _ = require('lodash');
 const should = require('should');
-const runner = require('../lib/launcher');
+const launcher = require('../lib/launcher');
 
 const { range, reduce, castArray } = _;
+const { getArgs, getCurrent } = launcher;
 
 describe('launcher', function() {
+  let argv;
+
+  beforeEach(function() {
+    argv = ['node', '/file.js'];
+  });
+
   describe('#launch', function() {
-    let argv, schema, launch, listeners;
+    let schema, launch, listeners;
 
     beforeEach(function() {
       should.use(assertions);
@@ -20,8 +27,6 @@ describe('launcher', function() {
 
         return result;
       }, {});
-
-      argv = ['node', '/file.js'];
 
       schema = {
         '1': listeners[1],
@@ -37,7 +42,7 @@ describe('launcher', function() {
         }
       };
 
-      launch = argv => runner.launch(schema, argv);
+      launch = argv => launcher.launch(schema, argv);
     });
 
     it('should launch "1"', function() {
@@ -64,12 +69,13 @@ describe('launcher', function() {
       should(3).launched();
     });
 
-    it('should launch "3"', function() {
-      argv.push(2, 3);
+    it('should not launch "2"', function() {
+      argv.push(2, 999);
 
       launch(argv);
+      console.log(listeners);
 
-      should(3).launched();
+      should().launched();
     });
 
     it('should launch "3" with options', function() {
@@ -131,6 +137,44 @@ describe('launcher', function() {
         should(success).eql(true);
       });
     }
+  });
+
+  describe('#getCurrent', function() {
+    const schema = { first: { second: () => {} } };
+
+    it('Should return "second"', function() {
+      argv.push('first', 'second');
+
+      const current = getCurrent(schema, getArgs(argv));
+
+      should(current).eql(schema.first.second);
+    });
+
+    it('Should return "first"', function() {
+      argv.push('first', 'sec');
+
+      const current = getCurrent(schema, getArgs(argv));
+
+      should(current).eql(schema.first);
+    });
+
+    it('Should return depth = 2', function() {
+      argv.push(1, 2, 3);
+      const schema = {
+        '1': {
+          commands: {
+            '2': {
+              commands: {
+                '3': () => {}
+              }
+            }
+          }
+        }
+      };
+      const current = getCurrent(schema, getArgs(argv));
+
+      should(current.depth).eql(3);
+    });
   });
 });
 
